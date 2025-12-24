@@ -1,5 +1,5 @@
 // ใส่ API Key ล่าสุดของคุณที่นี่
-const API_KEY = "AIzaSyDtf6TL1f4hdsfzESE4NH2pj9INPqEE2oI"; 
+const API_KEY = "AIzaSyDC277zAe1ZQXZC9izS0nIdC5SOtTmhsVc"; 
 
 export const generateProjectPlan = async (userPrompt) => {
   try {
