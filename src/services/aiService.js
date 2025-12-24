@@ -3,47 +3,74 @@ const API_KEY = "AIzaSyDC277zAe1ZQXZC9izS0nIdC5SOtTmhsVc";
 
 export const generateProjectPlan = async (userPrompt) => {
   try {
-    // 1. ขั้นตอนพิเศษ: ถาม Google ว่า "บัญชีนี้ใช้ Model อะไรได้บ้าง?"
-    const modelsResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`
-    );
-    const modelsData = await modelsResponse.json();
-    
-    // หา Model ที่ชื่อมีคำว่า 'gemini' และรองรับการ generateContent
-    const validModel = modelsData.models?.find(
-      m => m.name.includes('gemini') && m.supportedGenerationMethods.includes('generateContent')
-    );
+    // ---------------------------------------------------------
+    // 1. Auto-detect Model (ใช้ Logic เดิมของคุณ)
+    // ---------------------------------------------------------
+    let targetModel = "models/gemini-1.5-flash"; // Default
 
-    // ถ้าหาไม่เจอ ให้ลองบังคับใช้ตัวมาตรฐาน (กันเหนียว)
-    // หมายเหตุ: validModel.name จะมาในรูป "models/gemini-1.5-flash" เราใช้ได้เลย
-    const targetModel = validModel ? validModel.name : "models/gemini-1.5-flash";
-    
-    console.log("🤖 Auto-detected Model:", targetModel); // เช็คใน Console ได้ว่ามันเลือกตัวไหน
+    try {
+      const modelsResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`
+      );
+      if (modelsResponse.ok) {
+        const modelsData = await modelsResponse.json();
+        const validModel = modelsData.models?.find(
+          m => m.name.includes('gemini') && 
+               !m.name.includes('vision') && 
+               m.supportedGenerationMethods.includes('generateContent')
+        );
+        if (validModel) targetModel = validModel.name;
+      }
+    } catch (e) {
+      console.warn("Auto-detect failed, using fallback.");
+    }
 
-    // 2. เริ่มสร้าง Project Plan
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${API_KEY}`;
+    console.log("🤖 Using Model:", targetModel);
 
+    // ---------------------------------------------------------
+    // 2. สร้าง Prompt แบบ "One-Shot" (ให้ตัวอย่างชัดเจน)
+    // ---------------------------------------------------------
     const systemPrompt = `
-      You are AETHRA, an elite AI Project Manager.
-      Break down the user's idea into a technical plan.
-      RETURN ONLY JSON. NO MARKDOWN.
+      You are AETHRA, an expert Technical Project Manager.
       
-      Structure:
+      GOAL: Break down the user's idea into a detailed technical plan with granular tasks.
+      
+      CRITICAL RULES:
+      1. Language: MUST be THAI (ภาษาไทย) only.
+      2. Format: Return ONLY raw JSON. No Markdown.
+      3. Depth: Each 'feature' MUST have at least 3-5 specific 'tasks'.
+      4. Do NOT return empty task lists.
+      
+      REQUIRED JSON STRUCTURE (Follow this exactly):
       {
-        "title": "string",
-        "description": "string",
-        "complexity": "simple" | "moderate" | "complex",
-        "tasks": [
-          { "id": 1, "title": "string", "estimate": "string", "priority": "high" | "medium" | "low" }
+        "title": "Project Name",
+        "description": "Short summary",
+        "complexity": "Simple | Moderate | Complex",
+        "features": [
+          {
+            "name": "Feature Name (e.g. ระบบสมาชิก)",
+            "tasks": [
+              { "title": "Actionable task 1", "priority": "high", "estimate": "2d" },
+              { "title": "Actionable task 2", "priority": "medium", "estimate": "4h" },
+              { "title": "Actionable task 3", "priority": "low", "estimate": "1d" }
+            ]
+          }
         ]
       }
     `;
 
-    const response = await fetch(API_URL, {
+    // ---------------------------------------------------------
+    // 3. ยิง API
+    // ---------------------------------------------------------
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/${targetModel}:generateContent?key=${API_KEY}`,
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: systemPrompt + "\n\nUser Input: " + userPrompt }] }]
+          contents: [{ 
+            parts: [{ text: systemPrompt + "\n\nUser Request: " + userPrompt }] 
+          }]
         }),
       }
     );
@@ -51,20 +78,42 @@ export const generateProjectPlan = async (userPrompt) => {
     const data = await response.json();
     
     if (!response.ok) {
-      console.error("API Error:", data);
       throw new Error(data.error?.message || "Gemini API Error");
     }
 
+    // ---------------------------------------------------------
+    // 4. Clean & Parse Logic
+    // ---------------------------------------------------------
     let contentText = data.candidates[0].content.parts[0].text;
     
-    // Clean up JSON
+    // ลบ Markdown (```json ... ```)
+    contentText = contentText.replace(/```json/g, "").replace(/```/g, "").trim();
+    
+    // ตัดเอาเฉพาะ JSON {...}
     const jsonStartIndex = contentText.indexOf('{');
     const jsonEndIndex = contentText.lastIndexOf('}') + 1;
     if (jsonStartIndex !== -1) {
       contentText = contentText.substring(jsonStartIndex, jsonEndIndex);
     }
     
-    return JSON.parse(contentText);
+    const result = JSON.parse(contentText);
+
+    // 🛠️ FIX: กันเหนียว ถ้า AI ไม่ส่ง tasks มา ให้เติม array ว่าง หรือสร้าง dummy task
+    if (result.features) {
+      result.features.forEach(feature => {
+        if (!feature.tasks) {
+          feature.tasks = [{ title: "ออกแบบโครงสร้างระบบ", priority: "high", estimate: "1d" }];
+        }
+      });
+    }
+
+    // 🛠️ FIX 2: ถ้า AI ส่งกลับมาผิด format (ไม่มี features เลย) ให้แปลง tasks ธรรมดาเป็น features
+    if (!result.features && result.tasks) {
+       result.features = [{ name: "General Tasks", tasks: result.tasks }];
+    }
+
+    console.log("✅ Parsed Plan:", result); // ดู Log ตรงนี้ได้เลยว่ามาครบไหม
+    return result;
 
   } catch (error) {
     console.error("AI Service Error:", error);
