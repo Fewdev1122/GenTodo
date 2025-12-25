@@ -12,76 +12,63 @@ import AIAssistant from './components/AIAssistant';
 import PlansOverview from './components/PlansOverview';
 import ConstellationView from './components/ConstellationView';
 
-const CLIENT_ID = "1080874707512-r4qeulmgdrb87ki1mpcndl958oompllc.apps.googleusercontent.com"; 
-const API_KEY = "AIzaSyAtrigJKkKBnsfxTKcO24zGzJsUXnrbsRo"; 
+const CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID; 
+const API_KEY = import.meta.env.REACT_APP_GOOGLE_API_KEY;
 const DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
 const SCOPES = "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly";
 
-// 🔥 SUB-COMPONENT: BURNOUT METER (Mental Health Feature) 🔥
 const BurnoutMeter = ({ tasks }) => {
-  const totalHours = tasks.filter(t => t.status !== 'done').reduce((acc, task) => {
-    const days = task.durationDays || 1; 
-    return acc + (days * 8); // สมมติ 1 วัน = 8 work hours
+  const inProgressTasks = tasks.filter(t => t.status === 'in-progress');
+  const totalWeight = inProgressTasks.reduce((acc, task) => {
+    const days = task.durationDays || 1;
+    return acc + (days * 8);
   }, 0);
 
-  const maxCapacity = 40; // 40 hours/week limit
-  const percentage = Math.min((totalHours / maxCapacity) * 100, 100);
+  const maxCapacity = 40; 
+  const percentage = totalWeight > 0 ? Math.min((totalWeight / maxCapacity) * 100, 100) : 0;
 
-  let status = "Healthy";
-  let color = "text-emerald-500";
-  let message = "Your workload is balanced.";
-  let Icon = ShieldCheck;
+  let statusInfo = {
+    label: "Healthy",
+    icon: <ShieldCheck size={18} className="text-emerald-500" />,
+    message: "You're focused and balanced."
+  };
 
-  if (percentage > 50 && percentage <= 80) {
-    status = "Moderate";
-    color = "text-amber-400";
-    message = "You're getting busy. Pace yourself.";
-    Icon = Activity;
-  } else if (percentage > 80) {
-    status = "Overload";
-    color = "text-rose-500";
-    message = "⚠️ Warning: Burnout risk detected!";
-    Icon = AlertTriangle;
+  if (percentage > 80) {
+    statusInfo = {
+      label: "Critical",
+      icon: <AlertTriangle size={18} className="text-rose-500" />,
+      message: "⚠️ Stop! Too many active tasks."
+    };
+  } else if (percentage > 50) {
+    statusInfo = {
+      label: "Moderate",
+      icon: <Activity size={18} className="text-amber-400" />,
+      message: "Active workload is increasing."
+    };
   }
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm mb-6 flex items-center gap-4">
       <div className="relative w-16 h-16 flex-shrink-0">
         <svg className="w-full h-full transform -rotate-90">
-          <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" className="text-slate-100" />
-          <circle 
-            cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="transparent" 
-            className={`${percentage > 80 ? 'text-rose-500' : percentage > 50 ? 'text-amber-400' : 'text-emerald-500'} transition-all duration-1000 ease-out`}
-            strokeDasharray={175}
-            strokeDashoffset={175 - (175 * percentage) / 100}
-            strokeLinecap="round"
-          />
+          <circle cx="32" cy="32" r="28" stroke="#f1f5f9" strokeWidth="6" fill="transparent" />
+          {percentage > 0 && (
+            <circle 
+              cx="32" cy="32" r="28" stroke={percentage > 80 ? '#f43f5e' : percentage > 50 ? '#fbbf24' : '#10b981'} 
+              strokeWidth="6" fill="transparent" 
+              strokeDasharray={175}
+              strokeDashoffset={175 - (175 * percentage) / 100}
+              strokeLinecap="round"
+              className="transition-all duration-1000"
+            />
+          )}
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-600">
-          {Math.round(percentage)}%
-        </div>
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-slate-600">{Math.round(percentage)}%</div>
       </div>
-
       <div className="flex-1">
-        <div className="flex justify-between items-center mb-1">
-            <h4 className={`font-bold text-slate-800 flex items-center gap-2`}>
-                <Icon size={18} className={color} />
-                {percentage > 80 ? "Mental Load: HIGH" : "Mental Load"}
-            </h4>
-        </div>
-        <p className={`text-sm ${percentage > 80 ? 'text-rose-600 font-semibold' : 'text-slate-500'}`}>
-            {message}
-        </p>
+        <h4 className="font-bold text-slate-800 flex items-center gap-2">{statusInfo.icon} {percentage > 80 ? "Active Load: CRITICAL" : "Active Mental Load"}</h4>
+        <p className="text-sm text-slate-500">{statusInfo.message}</p>
       </div>
-
-      {percentage > 80 && (
-          <button 
-            className="px-4 py-2 bg-rose-100 text-rose-700 text-xs font-bold rounded-lg hover:bg-rose-200 transition-colors hidden sm:block"
-            onClick={() => alert("AI Suggestion: Move 'Backend Setup' to next week to reduce stress.")}
-          >
-             Fix Schedule
-          </button>
-      )}
     </div>
   );
 };
@@ -394,7 +381,7 @@ const AethraTaskManager = () => {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md"><Sparkles className="w-6 h-6 text-white" /></div>
-            <div><h1 className="text-2xl font-bold tracking-tight">AETHRA</h1><p className="text-xs text-slate-500 font-medium">Neuro-Inclusive Workspace</p></div>
+            <div><h1 className="text-2xl font-bold tracking-tight">MindBalance</h1><p className="text-xs text-slate-500 font-medium">Neuro-Inclusive Workspace</p></div>
           </div>
           <div className="flex items-center space-x-4">
             {googleUser ? (
