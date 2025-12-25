@@ -1,16 +1,32 @@
-# React + Vite
+# 🌌 MindBalance: The Neuro-Inclusive Productivity Shield
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**MindBalance** is a smart, empathy-driven task management ecosystem designed specifically to support neurodivergent individuals (ADHD, Autism) and anyone prone to burnout. By integrating directly with Google Calendar and using our custom **Weighted Cognitive Load Algorithm**, we transform abstract stress into visual clarity.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+- **The Burnout Shield:** A dynamic visual meter that calculates your real-time mental load.
+- **Google Calendar Sync:** Seamless bi-directional synchronization with your existing schedule.
+- **Galaxy View:** A spatial, interconnected task visualization to help with "Time Blindness."
+- **Neuro-inclusive UI:** A distraction-free, high-contrast interface designed for focus.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+- **Frontend:** React.js, Tailwind CSS
+- **Backend/Database:** Supabase (PostgreSQL)
+- **Authentication:** Google OAuth 2.0 & Supabase Auth
+- **APIs:** Google Calendar API (v3)
+- **Deployment:** Vercel
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🧠 The Algorithm
+
+We measure mental load using a weighted approach to ensure users don't overcommit:
+
+```text
+Load % = (Sum of Active Task Hours / Weekly Capacity) * 100
+
+Installation & Setup
+Clone the repository:
+git clone [https://github.com/your-username/mindbalance.git](https://github.com/your-username/mindbalance.git)
+cd mindbalance
