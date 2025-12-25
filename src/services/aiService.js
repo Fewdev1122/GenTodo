@@ -1,5 +1,5 @@
 // ใส่ API Key ล่าสุดของคุณที่นี่
-const API_KEY = "AIzaSyDC277zAe1ZQXZC9izS0nIdC5SOtTmhsVc"; 
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
 export const generateProjectPlan = async (userPrompt) => {
   try {

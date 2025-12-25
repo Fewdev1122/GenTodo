@@ -96,23 +96,32 @@ const AIAssistant = ({ onDeployPlan }) => {
   const handleDeploy = () => {
     if (!draftPlan?.features) return;
     
-    // ดึงเฉพาะ Task ที่ติ๊กถูก ส่งกลับไป
-    let finalTasks = [];
-    draftPlan.features.forEach(f => {
-      if (f.tasks && Array.isArray(f.tasks)) {
-        f.tasks.forEach(t => {
-          if (t.isSelected) {
-            finalTasks.push({ ...t, title: t.title }); 
-          }
-        });
-      }
-    });
+    // ✅ 1. วนลูป Features
+    const cleanFeatures = draftPlan.features.map(feature => ({
+      ...feature,
+      // ✅ 2. วนลูป Tasks เพื่อใส่ status: 'plan'
+      tasks: (feature.tasks || [])
+        .filter(task => task.isSelected) // เอาเฉพาะที่ติ๊กถูก
+        .map(task => ({
+          ...task,
+          status: 'plan', // 👈 ใส่บรรทัดนี้ครับ! เพื่อบอกว่า "ให้ไปกองอยู่ที่ Plan ก่อนนะ อย่าเพิ่งไป Todo"
+          isCompleted: false 
+        }))
+    })).filter(feature => feature.tasks.length > 0); // ตัด Feature ว่างทิ้ง
 
-    onDeployPlan({ ...draftPlan, tasks: finalTasks });
+    // 3. รวมร่างส่งกลับไป
+    const finalPlan = {
+      ...draftPlan,
+      features: cleanFeatures
+    };
+
+    // ส่งข้อมูลออกไป
+    onDeployPlan(finalPlan);
+    
+    // Reset ค่า
     setDraftPlan(null);
     setAiPrompt('');
   };
-
   // --- RENDER ---
 
   return (
