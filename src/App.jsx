@@ -1,20 +1,14 @@
-import React, { useState, useEffect } from 'react'; // 👈 เติม useEffect ตรงนี้
-// ... (โค้ดเดิมของคุณ)
-  // ✅ 1. โหลดข้อมูลเก่าทันทีที่ประกาศตัวแปร (รวมบรรทัด useState เดิม + useEffect ตัว Load เข้าด้วยกัน)
-  const [plans, setPlans] = useState(() => {
-    const saved = localStorage.getItem('my_plans_data');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return [];
-      }
-    }
-    return []; // ถ้าไม่มีของเก่า ให้เริ่มด้วยค่าว่าง
-  });
+import React from 'react';
+// 👇 เปลี่ยนจาก SmartCalendarView เป็น RealCalendarView (ไฟล์ใหม่ที่เราเพิ่งใส่ Key)
+import RealCalendarView from './RealCalendarView'; 
 
-  // ✅ 2. บันทึกข้อมูลทุกครั้งที่เปลี่ยน (Save)
-  // ตัดเงื่อนไข if (plans.length > 0) ออก เพื่อให้บันทึกได้แม้จะลบหมดเกลี้ยง
-  useEffect(() => {
-    localStorage.setItem('my_plans_data', JSON.stringify(plans));
-  }, [plans]);
+function App() {
+  return (
+    <div className="App">
+      {/* 👇 เรียกใช้ตัวใหม่ */}
+      <RealCalendarView /> 
+    </div>
+  );
+}
+
+export default App;
