@@ -26,7 +26,22 @@ We measure mental load using a weighted approach to ensure users don't overcommi
 ```text
 Load % = (Sum of Active Task Hours / Weekly Capacity) * 100
 
-Installation & Setup
+1. Installation & Setup
 Clone the repository:
 git clone [https://github.com/your-username/mindbalance.git](https://github.com/your-username/mindbalance.git)
 cd mindbalance
+
+2. Install dependencies:
+npm install
+
+3. Environment Variables: Create a .env file in the root directory and add your credentials
+REACT_APP_GOOGLE_CLIENT_ID=your_client_id
+REACT_APP_GOOGLE_API_KEY=your_api_key
+REACT_APP_SUPABASE_URL=your_supabase_url
+REACT_APP_SUPABASE_ANON_KEY=your_supabase_key
+
+4. Run the app:
+npm run dev
+
+Hackathon Achievements
+Built with passion for the [MindBalance]. Our goal was to create "Digital Empathy"—technology that understands the human mind's limits.
