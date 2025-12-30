@@ -6,7 +6,7 @@
 
 ## Features
 
-- **The Burnout Shield:** A dynamic visual meter that calculates your real-time mental load.    
+- **The Burnout Shield:** A dynamic visual meter that calculates your real-time mental load.      
 - **Google Calendar Sync:** Seamless bi-directional synchronization with your existing schedule.  
 - **Galaxy View:** A spatial, interconnected task visualization to help with "Time Blindness."
 - **Neuro-inclusive UI:** A distraction-free, high-contrast interface designed for focus.
