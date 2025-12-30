@@ -1,4 +1,4 @@
-# MindBalance: The Neuro-Inclusive Productivity Shield (Hackthon Demo)
+# MindBalance: The Neuro-Inclusive Productivity Shield (Hackthon Demo) 
 
 **MindBalance** is a smart, empathy-driven task management ecosystem designed specifically to support neurodivergent individuals (ADHD, Autism) and anyone prone to burnout. By integrating directly with Google Calendar and using our custom **Weighted Cognitive Load Algorithm**, we transform abstract stress into visual clarity.
 
